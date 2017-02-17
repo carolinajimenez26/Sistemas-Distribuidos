@@ -1,5 +1,14 @@
 import xmlrpclib
 from SimpleXMLRPCServer import SimpleXMLRPCServer as Server
+import math
+
+def get_file(file_name):
+	file = open(file_name,'r')
+	data = []
+	for item in file:
+		data.append(int(item.rstrip()))
+		file.close()
+		return data
 
 class Operaciones:
 	#### servicios
@@ -21,18 +30,15 @@ class Operaciones:
 		else:
 			return self.fibonacci(n-1)+self.fibonacci(n-2)
 
-    # recibe el archivo de texto
-    def receive_data(file_name):
-         with open(file_name, "rb") as handle:
-             return xmlrpclib.Binary(handle.read())
+	# recibe el archivo de texto
+	def receive_data(self, file_name):
+		with open(file_name, "rb") as handle:
+			return (xmlrpclib.Binary(handle.read()))
 
-    def get_file(file_name):
-        file = open(file_name,'r')
-        data = []
-        for item in file:
-            data.append(int(item.rstrip()))
-        file.close()
-        return data
+	def get_data(self):
+		a = get_file("clientdata.txt") # pasa datos de archivo a una variable
+		print ("received: ", a)
+
 
 conexion = Server(('localhost',8000))
 print "###################servidor ONLINE #####################################"

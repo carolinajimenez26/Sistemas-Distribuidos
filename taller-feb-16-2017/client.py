@@ -14,6 +14,7 @@ en un archivo de texto en invocar la RPC  del servidor con ese archivo como para
 
 import xmlrpclib
 import os
+import math
 
 def make_file(data):
     file_name = "data.txt"
@@ -34,37 +35,39 @@ def menu():
 	print "			2. FACTORIAL"
 	print "			3. SERIE DE FIBONACCI"
 	print "			4. LLENAR LISTA/TUPLA"
-	print "			0. SALIR"
+	print "			Cualquier otro para SALIR"
 
 def conectar():
 	menu()
 	a = input('Ingrese una opcion: ')
 	if a == 1:
-		os.system('cls')
+		os.system('clear')
 		b = input('Ingrese la base: ')
 		c = input('Ingrese el exponente: ')
 		print "El valor de la potencia es : "+str(proxy.potencia(b,c))
 
 	elif a == 2:
-		os.system('cls')
+		os.system('clear')
 		n=input("ingrese un entero: ")
 		print "el factorial de : "+str(n)+str(" es: ")+str(proxy.factorial(n))
 
 	elif a == 3:
-		os.system('cls')
+		os.system('clear')
 		n = input("ingrese un entero: ")
 		print "el numero de fibonacci es: "+str(proxy.fibonacci(n))
 
 	elif a == 4:
-		os.system('cls')
+		os.system('clear')
 		l = raw_input("ingrese los numeros con espacios: ")
 		l = l.rstrip().split(" ") # quita espacios y lo pone en una lista como strings
 		file_name = make_file(l) # lo inserta en un documento de texto
 		# envia el archivo de texto
-		#with open("client" + file_name, "wb") as handle:
-		    #handle.write(proxy.receive_data(file_name).data)
+		with open("client" + file_name, "wb") as handle:
+		    handle.write(proxy.receive_data(file_name).data) # no se sabe cuando termina de enviar
 
-	elif a == 0:
+		proxy.get_data()
+
+	else :
 		print "para el servidor y todo el equipo fue un placer atenderle, regresa pronto a nuestro MENU"
 		exit()
 
