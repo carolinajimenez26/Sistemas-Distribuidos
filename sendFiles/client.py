@@ -18,7 +18,6 @@ a = [1,2,3,4]
 file_name = make_file(a) # lo pone en un archivo de texto
 print ("file_name (from client) : ", file_name)
 
-answer = proxy.get_file_name(file_name)
 # envia el archivo de texto
 with open("client" + file_name, "wb") as handle:
     handle.write(proxy.receive_data(file_name).data)
