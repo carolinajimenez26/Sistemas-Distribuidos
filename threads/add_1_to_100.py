@@ -27,7 +27,7 @@ ans = []
 number = 1
 
 while (n < 5):
-    td = MyThread(number,number+19)
+    td = MyThread(number,number+20)
     td.start()
     l.append(td)
     n += 1
