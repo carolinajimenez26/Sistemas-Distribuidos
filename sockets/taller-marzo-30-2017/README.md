@@ -1,6 +1,6 @@
 Para la clase de hoy en la segunda hora se requiere lo siguiente(Grupos de dos estudiantes):
 
-1. Crear un programa cliente y un programa servidor.
+## Crear un programa cliente y un programa servidor.
 
   1. Establecer un socket de conexión entre ellos.
 
@@ -16,7 +16,7 @@ Para la clase de hoy en la segunda hora se requiere lo siguiente(Grupos de dos e
 
   7. Se debe imprimir en el cliente dicho resultado.
 
-2. Implementar un cliente y un servidor.
+## Implementar un cliente y un servidor.
 
   1. Establecer un socket de conexion entre ellos.
 
@@ -55,4 +55,5 @@ print autenticacion('cesar_jaramillo_distribuidos2','123456789')
 __________________
 
 Carolina Jiménez
+
 German Gómez
