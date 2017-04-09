@@ -1,3 +1,5 @@
+## Especificaciones
+
 Implementar un sistema con la arquitectura que se encuentra en la imagen adjunta (cliente-servidor):
 
 El requerimiento es el siguiente:
@@ -6,4 +8,4 @@ El requerimiento es el siguiente:
 
 - Cada que se conecte un cliente el servidor le debe enviar un mensaje con el numero de conexión, es decir: (hola, eres el cliente 1), (Hola, eres el cliente 2), (hola, eres el cliente 3)......(hola, eres el cliente), etc
 
-![alt text](https://github.com/carolinajimenez26/Sistemas-Distribuidos/taller-semana-santa/Cliente_servidor_socket.png)
+![](https://github.com/carolinajimenez26/Sistemas-Distribuidos/blob/master/taller-semana-santa/Cliente_servidor_socket.png)
