@@ -1,36 +1,56 @@
-import socket
-import thread
+import socket, select
 
-def on_new_client(clientsocket,addr,clients):
-    msg = clientsocket.recv(1024) # recibe el primer mensaje del cliente
-    print ("Mensaje del cliente: ", msg)
-    msg = "Ingrese un nombre de usuario "
-    clientsocket.send(msg)
-    user_name = clientsocket.recv(1024)
-    print ("Usuario: ", user)
-    clients.append((user_name,clientsocket)) # agrega a la lista el nuevo cliente
-    while (True): # sigue escuchando al cliente
-        msg = clientsocket.recv(1024) # recibe el mensaje del cliente
-        print ("Mensaje del cliente: ", msg)
+def broadcast_data (sock, message, clients, user_names):
+    for socket in clients:
+        if socket != s and socket != sock :
+            try :
+                socket.send(message)
+            except :
+                # broken socket connection may be, chat client pressed ctrl+c for example
+                socket.close()
+                clients.remove(socket)
 
-        for i in range (0,len(clients)): # envia el mensaje a los otros usuarios
-            user = clients[i]
-            if (user[0] != user_name): # no se envia el mensaje a si mismo
-                user[1].send(msg)
+if __name__ == "__main__":
 
-    clientsocket.close() # termina la conexion con el cliente
+    clients = []
+    user_names = dict()
+    RECV_BUFFER = 4096
+    PORT = 8080
 
-s = socket.socket()
-port = 8080
+    s = socket.socket()
+    s.bind(('localhost', PORT))
+    s.listen(5)
 
-print ("Servidor escuchando el puerto " , port)
+    # Add server socket to the list of readable connections
+    clients.append(s)
+    user_names["server"] = s
 
-s.bind(('localhost', port))
-s.listen(5)
-clients = []
+    print ("Servidor escuchando el puerto " , PORT)
 
-while (True): # clientes indefinidos
-   c, addr = s.accept()     # Establece conexion con el cliente
-   thread.start_new_thread(on_new_client,(c,addr,clients)) # nuevo hilo para cada cliente
-   print "number of clients: " + str(len(clients))
-s.close() # termina la conexion
+    while True:
+        read_sockets, write_sockets, error_sockets = select.select(clients,[],[]) # para esperar I/O
+
+        for sock in read_sockets:
+            if sock == s: # hay una nueva conexion
+                new_client, addr = s.accept()
+                clients.append(new_client)
+                print ("Client (%s, %s) connected" % addr)
+                msg = "[%s:%s] entered room\n" % addr
+                broadcast_data(new_client, msg, clients, user_names)
+
+            else: # recibe el mensaje del cliente
+                try:
+                    data = sock.recv(RECV_BUFFER)
+                    if data:
+                        msg = "\r" + '<' + str(sock.getpeername()) + '> ' + data
+                        broadcast_data(sock, msg, clients, user_names)
+
+                except:
+                    msg = "Client (%s, %s) is offline" % addr
+                    broadcast_data(sock, msg)
+                    print (msg)
+                    sock.close() # cierra la conexion con el socket
+                    clients.remove(sock) # elimina el socket de la conexion
+                    continue
+
+    s.close()
