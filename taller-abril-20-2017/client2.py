@@ -2,6 +2,7 @@
 import socket, select, string, sys
 
 def prompt(user_name) :
+    sys.stdout.write('\n')
     sys.stdout.write(' < '  + user_name +  ' > ')
     sys.stdout.flush()
 
@@ -20,10 +21,10 @@ if __name__ == "__main__":
         sys.exit()
 
     print ("Conectado!")
-    user_name = "new_client"
     data = s.recv(4096)
     print (data)
-    s.send("Caro")
+    user_name = raw_input("")
+    s.send(user_name)
     prompt(user_name)
 
     while True:

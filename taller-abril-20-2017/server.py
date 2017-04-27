@@ -13,7 +13,7 @@ def broadcast_data (sock, message, clients, user_names):
 
 # Busca el nombre de usuario de un socket determinado
 def getUserName(user_names, sock):
-    for name, client in user_names:
+    for name, client in user_names.items():
         if(client == sock):
             return name
 
@@ -21,7 +21,7 @@ def getUserName(user_names, sock):
 
 # Elimina un socket de los usernames
 def removeClient(user_names, sock):
-    for name, client in user_names:
+    for name, client in user_names.items():
         if(client == sock):
             del user_names[name]
 
@@ -36,7 +36,6 @@ if __name__ == "__main__":
     s.bind(('localhost', PORT))
     s.listen(5)
 
-    # Add server socket to the list of readable connections
     clients.append(s)
     user_names["server"] = s
 
@@ -54,6 +53,7 @@ if __name__ == "__main__":
                 while True:
                     new_client.send("Ingrese un nombre de usuario: ")
                     user_name = new_client.recv(1024)
+                    print ("user_name : " + user_name)
                     if (user_name in user_names):
                         new_client.send("Nombre de usuario ya ha sido utilizado")
                     else:
@@ -81,6 +81,7 @@ if __name__ == "__main__":
                     if (not user_name):
                         sock.close()
                         clients.remove(sock)
+                        removeClient(user_names, sock)
                     else:
                         msg = user_name + " se ha desconectado."
                         broadcast_data(sock, msg)
