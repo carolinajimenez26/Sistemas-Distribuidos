@@ -1,93 +1,92 @@
 import socket, select
-
-# Envia un mensaje a todos los sockets conectados menos a el mismo y al servidor
-def broadcast_data (sock, message, clients, user_names):
-    for socket in clients:
-        if socket != s and socket != sock :
+ 
+#Function to broadcast chat messages to all connected clients
+def broadcast_data (sock, message):
+    #Do not send the message to master socket and the client who has send us the message
+    for socket in CONNECTION_LIST:
+        if socket != server_socket and socket != sock :
             try :
                 socket.send(message)
             except :
                 # broken socket connection may be, chat client pressed ctrl+c for example
                 socket.close()
-                clients.remove(socket)
+                CONNECTION_LIST.remove(socket)
 
-# Busca el nombre de usuario de un socket determinado
-def getUserName(user_names, sock):
-    for name, client in user_names.items():
-        if(client == sock):
-            return name
-
+def getUsername(sock, dic):
+    for u,s in dic.items():
+        if s == sock:
+            return u
+    print "No encontrado"
     return None
 
-# Elimina un socket de los usernames
-def removeClient(user_names, sock):
-    for name, client in user_names.items():
-        if(client == sock):
-            del user_names[name]
 
-if __name__ == "__main__":
-
-    clients = []
-    user_names = dict()
-    RECV_BUFFER = 4096
-    PORT = 8080
-
-    s = socket.socket()
-    s.bind(('localhost', PORT))
-    s.listen(5)
-
-    clients.append(s)
-    user_names["server"] = s
-
-    print ("Servidor escuchando el puerto " , PORT)
-
+def verifyUser(new_client, dic, CONNECTION_LIST, sock):
     while True:
-        read_sockets, write_sockets, error_sockets = select.select(clients,[],[]) # para esperar I/O
+        new_client.send("Ingresa un nombre de usuario: ")
+        user = new_client.recv(1024)
+        print "User: %s" %user
 
+        if (user in dic):
+            new_client.send("Nombre de usuario ya ha sido utilizado\n")
+        else:
+            CONNECTION_LIST.append(new_client)
+            dic[user] = new_client
+            new_client.send("Bienvenido al chat")
+            break
+    return user
+
+
+ 
+if __name__ == "__main__":
+     
+    # List to keep track of socket descriptors
+    CONNECTION_LIST = []
+    RECV_BUFFER = 4096 # Advisable to keep it as an exponent of 2
+    PORT = 5000
+     
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # this has no effect, why ?
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind(("0.0.0.0", PORT))
+    server_socket.listen(10)
+ 
+    # Add server socket to the list of readable connections
+    CONNECTION_LIST.append(server_socket)
+ 
+    print "Chat server started on port " + str(PORT)
+
+    users_list = {}
+ 
+    while True:
+        # Get the list sockets which are ready to be read through select
+        read_sockets,write_sockets,error_sockets = select.select(CONNECTION_LIST,[],[])
+ 
         for sock in read_sockets:
-            if sock == s: # hay una nueva conexion
-                new_client, addr = s.accept()
-                clients.append(new_client)
-                print ("Client (%s, %s) connected" % addr)
+            #New connection
+            if sock == server_socket:
+                # Handle the case in which there is a new connection recieved through server_socket
+                sockfd, addr = server_socket.accept()
 
-                while True:
-                    new_client.send("Ingrese un nombre de usuario: ")
-                    user_name = new_client.recv(1024)
-                    print ("user_name : " + user_name)
-                    if (user_name in user_names):
-                        new_client.send("Nombre de usuario ya ha sido utilizado")
-                    else:
-                        user_names[user_name] = sock # agrega el nuevo miembro
-                        new_client.send("Bienvenido al chat")
-                        break
+                username = verifyUser(sockfd, users_list, CONNECTION_LIST, sock)
 
-                msg = "Nuevo usuario: " + user_name
-                broadcast_data(new_client, msg, clients, user_names) # avisa del nuevo miembro
-
-            else: # recibe el mensaje del cliente
+                broadcast_data(sockfd, username + " entered room\n")
+             
+            #Some incoming message from a client
+            else:
+                # Data recieved from client, process it
                 try:
+                    #In Windows, sometimes when a TCP program closes abruptly,
+                    # a "Connection reset by peer" exception will be thrown
                     data = sock.recv(RECV_BUFFER)
                     if data:
-                        user_name = getUserName(user_names, sock)
-                        if (not user_name):
-                            sock.close()
-                            clients.remove(sock)
-                        else:
-                            msg = "\r" + '<' + user_name + '> ' + data
-                            broadcast_data(sock, msg, clients, user_names)
-
+                        user = getUsername(sock, users_list)
+                        broadcast_data(sock, "\r" + '<' + str(user) + '> ' + data)                
+                 
                 except:
-                    user_name = getUserName(user_names, sock)
-                    if (not user_name):
-                        sock.close()
-                        clients.remove(sock)
-                        removeClient(user_names, sock)
-                    else:
-                        msg = user_name + " se ha desconectado."
-                        broadcast_data(sock, msg)
-                        print (msg)
-                        sock.close() # cierra la conexion con el socket
-                        clients.remove(sock) # elimina el socket de la conexion
-                        removeClient(user_names, sock) # elimina el nombre de usuario
-
-    s.close()
+                    broadcast_data(sock, "Client %s is out\n" %username)
+                    print "Client (%s, %s) is offline" % addr
+                    sock.close()
+                    CONNECTION_LIST.remove(sock)
+                    continue
+     
+    server_socket.close()
